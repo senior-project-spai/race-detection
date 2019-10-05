@@ -1,0 +1,9 @@
+dlib>=19.3.0
+numpy
+Pillow
+face_recognition
+kafka-python
+sklearn
+pandas
+opencv-python
+boto3
