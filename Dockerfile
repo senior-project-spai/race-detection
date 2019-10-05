@@ -2,8 +2,8 @@
 
 FROM python:3.6-slim-stretch
 
-RUN apt-get -y update
-RUN apt-get install -y --fix-missing \
+RUN apt-get -y update \
+    && apt-get install -y --fix-missing \
     build-essential \
     cmake \
     gfortran \
