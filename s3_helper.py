@@ -3,6 +3,7 @@ import boto3
 from botocore import UNSIGNED
 from botocore.client import Config
 
+# TODO: Endpoint URL from environment variable
 # Config
 REGION_NAME = 'ap-southeast-1'
 
