@@ -6,7 +6,11 @@ from json import dumps
 from kafka import KafkaProducer
 from kafka import KafkaConsumer
 import logging
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter(
+    '%(asctime)s - %(name)s - %(message)s'))
+logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 
