@@ -6,7 +6,8 @@ from json import dumps
 from kafka import KafkaProducer
 from kafka import KafkaConsumer
 import logging
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 KAFKA_HOST = os.environ['KAFKA_HOST']
@@ -15,10 +16,10 @@ KAFKA_TOPIC_INPUT = os.environ['KAFKA_TOPIC_INPUT']
 KAFKA_TOPIC_OUTPUT = os.environ['KAFKA_TOPIC_OUTPUT']
 
 # display environment variable
-logging.info('KAFKA_HOST: {}'.format(KAFKA_HOST))
-logging.info('KAFKA_PORT: {}'.format(KAFKA_PORT))
-logging.info('KAFKA_TOPIC_INPUT: {}'.format(KAFKA_TOPIC_INPUT))
-logging.info('KAFKA_TOPIC_OUTPUT: {}'.format(KAFKA_TOPIC_OUTPUT))
+logger.info('KAFKA_HOST: {}'.format(KAFKA_HOST))
+logger.info('KAFKA_PORT: {}'.format(KAFKA_PORT))
+logger.info('KAFKA_TOPIC_INPUT: {}'.format(KAFKA_TOPIC_INPUT))
+logger.info('KAFKA_TOPIC_OUTPUT: {}'.format(KAFKA_TOPIC_OUTPUT))
 
 
 def main():
@@ -32,11 +33,11 @@ def main():
     producer = KafkaProducer(
         bootstrap_servers=['{}:{}'.format(KAFKA_HOST, KAFKA_PORT)])
 
-    logging.info('Ready for consuming messages')
+    logger.info('Ready for consuming messages')
     for message in consumer:
         # de-serialize
         inp = message.value.decode('utf-8')
-        logging.info('Input path: {}'.format(inp))
+        logger.info('Input path: {}'.format(inp))
 
         img_stream = s3_helper.get_file_stream_s3(inp)
 
@@ -49,7 +50,7 @@ def main():
 
         predict = gender_classifier.predict_one_image(img_stream)
         result = {'data': predict, 'filepath': inp}
-        logging.info('Result: {}'.format(result))
+        logger.info('Result: {}'.format(result))
         producer.send(KAFKA_TOPIC_OUTPUT, value=dumps(result).encode('utf-8'))
 
 
