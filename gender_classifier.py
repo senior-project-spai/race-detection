@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 import cv2
 import pandas as pd
 import json
+# import matplotlib.pyplot as plt
 # we are only going to use 4 attributes
 COLS = ['Male', 'Asian', 'White', 'Black']
 N_UPSCLAE = 1
@@ -84,7 +85,7 @@ def draw_attributes(img_path, df):
 def main(argv):
     if argv and argv[0] == '--test':
         print('test')
-        result = predict_one_image('picture/self.jpg')
+        result = predict_one_image('picture/customer.jpg')
         print(result)
 
 

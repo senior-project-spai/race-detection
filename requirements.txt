@@ -1,9 +1,10 @@
 dlib>=19.3.0
+scipy==0.18.1
 numpy
 Pillow
 face_recognition
 kafka-python
-sklearn
+scikit-learn==0.18.1
 pandas
 opencv-python
 boto3
