@@ -1,19 +1,24 @@
 import io
+import os
 import boto3
 from botocore import UNSIGNED
 from botocore.client import Config
 
-# TODO: Endpoint URL from environment variable
 # Config
-REGION_NAME = 'ap-southeast-1'
+S3_ENDPOINT = os.environ['S3_ENDPOINT']
+S3_ACCESS_KEY = os.environ['S3_ACCESS_KEY']
+S3_SECRET_KEY = os.environ['S3_SECRET_KEY']
 
 
 def get_file_stream_s3(uri):
     # split bucket & key
     BUCKET_NAME, filename = split_s3_bucket_key(uri)
 
-    s3 = boto3.resource('s3', region_name=REGION_NAME,
-                        config=Config(signature_version=UNSIGNED))
+    s3 = boto3.resource('s3',
+                        endpoint_url=S3_ENDPOINT,
+                        aws_access_key_id=S3_ACCESS_KEY,
+                        aws_secret_access_key=S3_SECRET_KEY,
+                        config=Config(signature_version='s3v4'))
     img_bucket = s3.Bucket(BUCKET_NAME)
     img_obj = img_bucket.Object(filename)
 
