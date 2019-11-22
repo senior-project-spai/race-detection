@@ -48,14 +48,31 @@ def predict_one_image(img_path):
     # plt.imshow(img)
     # plt.show()
 
-    # Create new column for display result
-    df['Gender'] = df.apply(
-        lambda row: 'Male' if row['Male'] >= 0.5 else 'Female', axis=1)
     df['Race'] = df[['Asian', 'White', 'Black']].idxmax(axis=1)
-
-    result = df.loc[:, ['Gender', 'Race', 'top',
-                        'right', 'bottom', 'left']].to_dict('records')
+    df_list = df[['Male', 'Asian', 'White',
+                  'Black', 'Race', 'top', 'right', 'bottom', 'left']].to_dict('records')
+    result = list(map(row_to_json, df_list))
     return result
+
+
+def row_to_json(row):
+    gender = 'Male' if row['Male'] >= 0.5 else 'Female'
+    gender_confident = row['Male'] if row['Male'] >= 0.5 else 1 - row['Male']
+    race = row['Race']
+    race_confident = row[row['Race']]
+    return {
+        'gender': {
+            'gender': gender,
+            'gender_confident': gender_confident
+        },
+        'race': {
+            'race': race,
+            'race_confident': race_confident
+        },
+        'top': row['top'],
+        'right': row['right'],
+        'bottom': row['bottom'],
+        'left': row['left']}
 
 
 def draw_attributes(img_path, df):
@@ -85,8 +102,8 @@ def draw_attributes(img_path, df):
 def main(argv):
     if argv and argv[0] == '--test':
         print('test')
-        result = predict_one_image('picture/customer.jpg')
-        print(result)
+        result = predict_one_image('picture/webcam.jpg')
+        print(json.dumps(result, indent=2))
 
 
 if __name__ == '__main__':
