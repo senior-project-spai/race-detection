@@ -63,11 +63,11 @@ def row_to_json(row):
     return {
         'gender': {
             'gender': gender,
-            'gender_confident': gender_confident
+            'confident': gender_confident
         },
         'race': {
             'race': race,
-            'race_confident': race_confident
+            'confident': race_confident
         },
         'top': row['top'],
         'right': row['right'],
