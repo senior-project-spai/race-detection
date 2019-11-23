@@ -37,7 +37,7 @@ def predict_one_image(img_path):
     """
     face_encodings, locs = extract_features(img_path)
     if not face_encodings:
-        return None, None
+        return []
     pred = pd.DataFrame(clf.predict_proba(face_encodings), columns=labels)
     pred = pred.loc[:, COLS]
     locs = pd.DataFrame(locs, columns=['top', 'right', 'bottom', 'left'])

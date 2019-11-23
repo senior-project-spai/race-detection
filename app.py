@@ -31,6 +31,7 @@ logger.info('KAFKA_TOPIC_OUTPUT: {}'.format(KAFKA_TOPIC_OUTPUT))
 
 
 def main():
+    # TODO: Kafka Config
     consumer = KafkaConsumer(KAFKA_TOPIC_INPUT,
                              bootstrap_servers=[
                                  '{}:{}'.format(KAFKA_HOST, KAFKA_PORT)],
