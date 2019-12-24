@@ -1,10 +1,10 @@
 dlib>=19.3.0
 scipy==0.18.1
-numpy
-Pillow
-face_recognition
-kafka-python
+numpy==1.17.2
+Pillow==6.2.0
+face_recognition==1.2.3
+kafka-python==1.4.7
 scikit-learn==0.18.1
-pandas
-opencv-python
-boto3
+pandas==0.25.1
+opencv-python==4.1.1.26
+boto3==1.9.243
