@@ -51,7 +51,7 @@ def main():
         logger.info('Input JSON: {}'.format(dumps(input_json, indent=2)))
 
         # Get image from S3
-        img_stream = s3_helper.get_file_stream_s3(input_json['file_path'])
+        img_stream = s3_helper.get_file_stream_s3(input_json['face_image_path'])
 
         # Open image from stream
         img = Image.open(img_stream)
