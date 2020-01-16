@@ -8,6 +8,8 @@ from PIL import Image, ImageDraw, ImageFont
 import cv2
 import pandas as pd
 import json
+import time
+from typing import Dict
 # import matplotlib.pyplot as plt
 # we are only going to use 4 attributes
 COLS = ['Male', 'Asian', 'White', 'Black']
@@ -32,12 +34,33 @@ def extract_features(img_path):
     return face_encodings, locs
 
 
-def predict_one_image(img_path):
+def predict_one_image(img_path, ref_position: Dict[str, int] = None):
     """Predict face attributes for all detected faces in one image
     """
     face_encodings, locs = extract_features(img_path)
     if not face_encodings:
         return []
+
+    # select the closest face centroid
+    if ref_position:
+        selected = {'index': None, 'distance': None}
+        centroid = {
+            'x': (ref_position['position_right'] + ref_position['position_left']) / 2,
+            'y': (ref_position['position_bottom'] + ref_position['position_top']) / 2}
+        for index, loc in enumerate(locs):
+            loc_x = (loc[1] + loc[3]) / 2
+            loc_y = (loc[2] + loc[0]) / 2
+            dist = (centroid['x']-loc_x)**2 + (centroid['y']-loc_y)**2
+            if not selected['index']:
+                selected['index'] = index
+                selected['distance'] = dist
+            else:
+                if dist < selected['distance']:
+                    selected['index'] = index
+                    selected['distance'] = dist
+        face_encodings = [face_encodings[selected['index']]]
+        locs = [locs[selected['index']]]
+
     pred = pd.DataFrame(clf.predict_proba(face_encodings), columns=labels)
     pred = pred.loc[:, COLS]
     locs = pd.DataFrame(locs, columns=['top', 'right', 'bottom', 'left'])
@@ -51,28 +74,28 @@ def predict_one_image(img_path):
     df['Race'] = df[['Asian', 'White', 'Black']].idxmax(axis=1)
     df_list = df[['Male', 'Asian', 'White',
                   'Black', 'Race', 'top', 'right', 'bottom', 'left']].to_dict('records')
-    result = list(map(row_to_json, df_list))
-    return result
+    return row_to_dict(df_list[0])
 
 
-def row_to_json(row):
-    gender = 'Male' if row['Male'] >= 0.5 else 'Female'
-    gender_confident = row['Male'] if row['Male'] >= 0.5 else 1 - row['Male']
-    race = row['Race']
-    race_confident = row[row['Race']]
+def row_to_dict(row: dict):
+    gender_type = 'Male' if row['Male'] >= 0.5 else 'Female'
+    gender_confidence = row['Male'] if row['Male'] >= 0.5 else 1 - row['Male']
+    race_type = row['Race']
+    race_confidence = row[row['Race']]
     return {
         'gender': {
-            'gender': gender,
-            'confident': gender_confident
+            'type': gender_type,
+            'confidence': gender_confidence
         },
         'race': {
-            'race': race,
-            'confident': race_confident
+            'type': race_type,
+            'confidence': race_confidence
         },
-        'top': row['top'],
-        'right': row['right'],
-        'bottom': row['bottom'],
-        'left': row['left']}
+        'position_top': row['top'],
+        'position_right': row['right'],
+        'position_bottom': row['bottom'],
+        'position_left': row['left'],
+        'time': int(time.time())}
 
 
 def draw_attributes(img_path, df):
@@ -102,7 +125,8 @@ def draw_attributes(img_path, df):
 def main(argv):
     if argv and argv[0] == '--test':
         print('test')
-        result = predict_one_image('picture/webcam.jpg')
+        result = predict_one_image('picture/classmate.jpg', {
+                                   'position_top': 240, 'position_right': 810, 'position_bottom': 290, 'position_left': 760})
         print(json.dumps(result, indent=2))
 
 

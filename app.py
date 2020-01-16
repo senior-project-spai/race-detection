@@ -20,8 +20,9 @@ logger.setLevel(logging.INFO)
 # Get Environment variables
 KAFKA_HOST = os.environ['KAFKA_HOST']
 KAFKA_PORT = os.environ['KAFKA_PORT']
-KAFKA_TOPIC_INPUT = os.environ['KAFKA_TOPIC_INPUT']
-KAFKA_TOPIC_OUTPUT = os.environ['KAFKA_TOPIC_OUTPUT']
+KAFKA_TOPIC_FACE_IMAGE = os.environ['KAFKA_TOPIC_FACE_IMAGE']
+KAFKA_TOPIC_RACE_RESULT = os.environ['KAFKA_TOPIC_RACE_RESULT']
+KAFKA_TOPIC_GENDER_RESULT = os.environ['KAFKA_TOPIC_GENDER_RESULT']
 
 # display environment variable
 logger.info('KAFKA_HOST: {}'.format(KAFKA_HOST))
@@ -32,7 +33,7 @@ logger.info('KAFKA_TOPIC_OUTPUT: {}'.format(KAFKA_TOPIC_OUTPUT))
 
 def main():
     # TODO: Kafka Config
-    consumer = KafkaConsumer(KAFKA_TOPIC_INPUT,
+    consumer = KafkaConsumer(KAFKA_TOPIC_FACE_IMAGE,
                              bootstrap_servers=[
                                  '{}:{}'.format(KAFKA_HOST, KAFKA_PORT)],
                              auto_offset_reset='earliest',
@@ -60,13 +61,28 @@ def main():
 
         # inference
         predict = gender_classifier.predict_one_image(img_stream)
-        result = {'results': predict,
-                  'filepath': input_json['file_path'],
-                  'branch_id': input_json['branch_id'],
-                  'camera_id': input_json['camera_id'],
-                  'time': input_json['time']}
-        logger.info('Result JSON: {}'.format(dumps(result, indent=2)))
-        producer.send(KAFKA_TOPIC_OUTPUT, value=dumps(result).encode('utf-8'))
+        gender_result = {'face_image_id': input_json['face_image_id'],
+                         'type': predict['gender']['type'],
+                         'confidence': predict['gender']['confidence'],
+                         'position_top': predict['position_top'],
+                         'position_right': predict['position_right'],
+                         'position_bottom': predict['position_bottom'],
+                         'position_left': predict['position_left']
+                         'time': predict['time']}
+        race_result = {'face_image_id': input_json['face_image_id'],
+                       'type': predict['race']['type'],
+                       'confidence': predict['race']['confidence'],
+                       'position_top': predict['position_top'],
+                       'position_right': predict['position_right'],
+                       'position_bottom': predict['position_bottom'],
+                       'position_left': predict['position_left'],
+                       'time': predict['time']}
+        logger.info('Gender Result JSON: {}'.format(
+            dumps(gender_result, indent=2)))
+        logger.info('Race Result JSON: {}'.format(
+            dumps(race_result, indent=2)))
+        producer.send(KAFKA_TOPIC_GENDER_RESULT, value=dumps(gender_result).encode('utf-8'))
+        producer.send(KAFKA_TOPIC_RACE_RESULT, value=dumps(race_result).encode('utf-8'))
 
 
 if __name__ == '__main__':
