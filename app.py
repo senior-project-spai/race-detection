@@ -27,8 +27,9 @@ KAFKA_TOPIC_GENDER_RESULT = os.environ['KAFKA_TOPIC_GENDER_RESULT']
 # display environment variable
 logger.info('KAFKA_HOST: {}'.format(KAFKA_HOST))
 logger.info('KAFKA_PORT: {}'.format(KAFKA_PORT))
-logger.info('KAFKA_TOPIC_INPUT: {}'.format(KAFKA_TOPIC_INPUT))
-logger.info('KAFKA_TOPIC_OUTPUT: {}'.format(KAFKA_TOPIC_OUTPUT))
+logger.info('KAFKA_TOPIC_FACE_IMAGE: {}'.format(KAFKA_TOPIC_FACE_IMAGE))
+logger.info('KAFKA_TOPIC_RACE_RESULT: {}'.format(KAFKA_TOPIC_RACE_RESULT))
+logger.info('KAFKA_TOPIC_GENDER_RESULT: {}'.format(KAFKA_TOPIC_GENDER_RESULT))
 
 
 def main():
