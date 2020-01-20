@@ -51,17 +51,25 @@ def main():
         logger.info('Input JSON: {}'.format(dumps(input_json, indent=2)))
 
         # Get image from S3
-        img_stream = s3_helper.get_file_stream_s3(input_json['face_image_path'])
+        img_stream = s3_helper.get_file_stream_s3(
+            input_json['face_image_path'])
 
         # Open image from stream
         img = Image.open(img_stream)
 
-        # Show Image
+        # # DEBUG: Show Image
         # plt.imshow(img)
         # plt.show()
 
         # inference
-        predict = gender_classifier.predict_one_image(img_stream)
+        ref_position = {
+            'position_top': input_json['position_top'],
+            'position_right': input_json['position_right'],
+            'position_bottom': input_json['position_bottom'],
+            'position_left': input_json['position_left']}
+        predict = gender_classifier.predict_one_image(img_stream, ref_position=ref_position)
+
+        # Response
         gender_result = {'face_image_id': input_json['face_image_id'],
                          'type': predict['gender']['type'],
                          'confidence': predict['gender']['confidence'],
@@ -82,6 +90,8 @@ def main():
             dumps(gender_result, indent=2)))
         logger.info('Race Result JSON: {}'.format(
             dumps(race_result, indent=2)))
+
+        # Send to Kafka
         producer.send(KAFKA_TOPIC_GENDER_RESULT,
                       value=dumps(gender_result).encode('utf-8'))
         producer.send(KAFKA_TOPIC_RACE_RESULT,
