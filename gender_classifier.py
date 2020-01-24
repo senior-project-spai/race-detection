@@ -27,7 +27,6 @@ def extract_features(img_path):
     """
     X_img = face_recognition.load_image_file(img_path)
     locs = face_locations(X_img, number_of_times_to_upsample=N_UPSCLAE)
-    # locs = [[233, 749, 542, 439]]
     if len(locs) == 0:
         return None, None
     face_encodings = face_recognition.face_encodings(
@@ -86,17 +85,13 @@ def predict_one_image(img_path, ref_position: Dict[str, int] = None):
             'position_left': None,
             'time': int(time.time())}
 
-    # predict
+    # Predict
     pred = pd.DataFrame(clf.predict_proba(face_encodings), columns=labels)
-    pred = pred.loc[:, COLS]
+    pred = pred.loc[:, COLS]  # Get only necessary columns
+
+    # Format
     locs = pd.DataFrame(locs, columns=['top', 'right', 'bottom', 'left'])
     df = pd.concat([pred, locs], axis=1)
-
-    # # DEBUG: For Display Image
-    # img = draw_attributes(img_path, df)
-    # plt.imshow(img)
-    # plt.show()
-
     df['Race'] = df[['Asian', 'White', 'Black']].idxmax(axis=1)
     df_list = df[['Male', 'Asian', 'White',
                   'Black', 'Race', 'top', 'right', 'bottom', 'left']].to_dict('records')
@@ -124,38 +119,12 @@ def row_to_dict(row: dict):
         'time': int(time.time())}
 
 
-def draw_attributes(img_path, df):
-    """Write bounding boxes and predicted face attributes on the image
-    """
-    img = Image.open(img_path)
-    img = np.array(img)
-    # img  = cv2.cvtColor(color, cv2.COLOR_BGR2RGB)
-    for row in df.iterrows():
-        top, right, bottom, left = row[1][4:].astype(int)
-        if row[1]['Male'] >= 0.5:
-            gender = 'Male'
-        else:
-            gender = 'Female'
-
-        race = np.argmax(row[1][1: 4])
-        text_showed = "{} {}".format(race, gender)
-
-        cv2.rectangle(img, (left, top), (right, bottom), (0, 0, 255), 2)
-        font = cv2.FONT_HERSHEY_DUPLEX
-        img_width = img.shape[1]
-        cv2.putText(img, text_showed, (left + 6, bottom - 6),
-                    font, 0.5, (255, 255, 255), 1)
-    return img
-
-
 def main(argv):
     if argv and argv[0] == '--test':
         print('test')
         # result = predict_one_image('picture/classmate.jpg', {
         #                            'position_top': 240, 'position_right': 810, 'position_bottom': 290, 'position_left': 760})
-        # result = predict_one_image(
-        #     'picture/FaceDetector_123456_123456_1579537701.jpg', {
-        #         'position_top': 233, 'position_right': 749, 'position_bottom': 542, 'position_left': 439})
+        # result = predict_one_image('picture/babe_female.jpg')
         # print(json.dumps(result, indent=2))
 
 

@@ -57,17 +57,18 @@ def main():
         # Open image from stream
         img = Image.open(img_stream)
 
-        # # DEBUG: Show Image
-        # plt.imshow(img)
-        # plt.show()
+        # Reference position
+        ref_position = None
+        if input_json['position_top'] and input_json['position_right'] and input_json['position_bottom'] and input_json['position_left']:
+            ref_position = {
+                'position_top': input_json['position_top'],
+                'position_right': input_json['position_right'],
+                'position_bottom': input_json['position_bottom'],
+                'position_left': input_json['position_left']}
 
         # inference
-        ref_position = {
-            'position_top': input_json['position_top'],
-            'position_right': input_json['position_right'],
-            'position_bottom': input_json['position_bottom'],
-            'position_left': input_json['position_left']}
-        predict = gender_classifier.predict_one_image(img_stream, ref_position=ref_position)
+        predict = gender_classifier.predict_one_image(
+            img_stream, ref_position=ref_position)
 
         # Response
         gender_result = {'face_image_id': input_json['face_image_id'],
