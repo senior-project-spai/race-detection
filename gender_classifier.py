@@ -43,6 +43,7 @@ def predict_one_image(img_path, ref_position: Dict[str, int] = None):
     # Select face
     if face_encodings and ref_position:
         # select the closest face centroid
+        print("INFO: use face_encodings and ref_position")
         selected = {'index': None, 'distance': None}
         centroid = {
             'x': (ref_position['position_right'] + ref_position['position_left']) / 2,
@@ -51,7 +52,7 @@ def predict_one_image(img_path, ref_position: Dict[str, int] = None):
             loc_x = (loc[1] + loc[3]) / 2
             loc_y = (loc[2] + loc[0]) / 2
             dist = (centroid['x']-loc_x)**2 + (centroid['y']-loc_y)**2
-            if not selected['index']:
+            if selected['index'] == None:
                 selected['index'] = index
                 selected['distance'] = dist
             else:
@@ -62,12 +63,17 @@ def predict_one_image(img_path, ref_position: Dict[str, int] = None):
         locs = [locs[selected['index']]]
     elif ref_position:
         # use reference position to force encoding
+        print("INFO: use only ref_position")
         locs = [[ref_position['position_top'],
                  ref_position['position_right'],
                  ref_position['position_bottom'],
                  ref_position['position_left']]]
         face_encodings = face_recognition.face_encodings(face_recognition.load_image_file(img_path),
                                                          known_face_locations=locs)
+    elif face_encodings:
+        print("INFO: use only face_encodings")
+        face_encodings = face_encodings[0:1]
+        locs = locs[0:1]
     else:
         # return None result
         return {
@@ -86,6 +92,7 @@ def predict_one_image(img_path, ref_position: Dict[str, int] = None):
             'time': int(time.time())}
 
     # Predict
+    print("INFO: Predict Location: {}".format(locs))
     pred = pd.DataFrame(clf.predict_proba(face_encodings), columns=labels)
     pred = pred.loc[:, COLS]  # Get only necessary columns
 
@@ -124,8 +131,10 @@ def main(argv):
         print('test')
         # result = predict_one_image('picture/classmate.jpg', {
         #                            'position_top': 240, 'position_right': 810, 'position_bottom': 290, 'position_left': 760})
+        result = predict_one_image('picture/babe_female.jpg', {
+                                   'position_top': 136, 'position_right': 681, 'position_bottom': 394, 'position_left': 423})
         # result = predict_one_image('picture/babe_female.jpg')
-        # print(json.dumps(result, indent=2))
+        print(json.dumps(result, indent=2))
 
 
 if __name__ == '__main__':
