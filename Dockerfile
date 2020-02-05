@@ -32,11 +32,10 @@ RUN cd ~ && \
     cd  dlib/ && \
     python3 setup.py install --yes USE_AVX_INSTRUCTIONS
 
-
+COPY ./requirements.txt .
+RUN pip3 install -r requirements.txt
 
 COPY . /root/face_detection
-RUN cd /root/face_detection && \
-    pip3 install -r requirements.txt
 
 CMD cd /root/face_detection && \
     python3 app.py

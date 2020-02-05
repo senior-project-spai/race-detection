@@ -8,6 +8,8 @@ from PIL import Image, ImageDraw, ImageFont
 import cv2
 import pandas as pd
 import json
+import time
+from typing import Dict
 # import matplotlib.pyplot as plt
 # we are only going to use 4 attributes
 COLS = ['Male', 'Asian', 'White', 'Black']
@@ -40,11 +42,13 @@ def extract_features(img_path):
     return face_encodings, locs
 
 
-def predict_one_image(img_path):
+def predict_one_image(img_path, ref_position: Dict[str, int] = None):
     """Predict face attributes for all detected faces in one image
     """
+    # Find face
     face_encodings, locs = extract_features(img_path)
 
+    ''' TODO: AGE
     if not face_encodings:
         return []
 
@@ -62,66 +66,91 @@ def predict_one_image(img_path):
         print("Age Range: {}".format(age))
 
 # ---------------------------------------------------------------------------- #
+    '''
+    # Select face
+    if face_encodings and ref_position:
+        # select the closest face centroid
+        print("INFO: use face_encodings and ref_position")
+        selected = {'index': None, 'distance': None}
+        centroid = {
+            'x': (ref_position['position_right'] + ref_position['position_left']) / 2,
+            'y': (ref_position['position_bottom'] + ref_position['position_top']) / 2}
+        for index, loc in enumerate(locs):
+            loc_x = (loc[1] + loc[3]) / 2
+            loc_y = (loc[2] + loc[0]) / 2
+            dist = (centroid['x']-loc_x)**2 + (centroid['y']-loc_y)**2
+            if selected['index'] == None:
+                selected['index'] = index
+                selected['distance'] = dist
+            else:
+                if dist < selected['distance']:
+                    selected['index'] = index
+                    selected['distance'] = dist
+        face_encodings = [face_encodings[selected['index']]]
+        locs = [locs[selected['index']]]
+    elif ref_position:
+        # use reference position to force encoding
+        print("INFO: use only ref_position")
+        locs = [[ref_position['position_top'],
+                 ref_position['position_right'],
+                 ref_position['position_bottom'],
+                 ref_position['position_left']]]
+        face_encodings = face_recognition.face_encodings(face_recognition.load_image_file(img_path),
+                                                         known_face_locations=locs)
+    elif face_encodings:
+        print("INFO: use only face_encodings")
+        face_encodings = face_encodings[0:1]
+        locs = locs[0:1]
+    else:
+        # return None result
+        return {
+            'gender': {
+                'type': None,
+                'confidence': None
+            },
+            'race': {
+                'type': None,
+                'confidence': None
+            },
+            'position_top': None,
+            'position_right': None,
+            'position_bottom': None,
+            'position_left': None,
+            'time': int(time.time())}
 
+    # Predict
+    print("INFO: Predict Location: {}".format(locs))
     pred = pd.DataFrame(clf.predict_proba(face_encodings), columns=labels)
-    pred = pred.loc[:, COLS]
+    pred = pred.loc[:, COLS]  # Get only necessary columns
+
+    # Format
     locs = pd.DataFrame(locs, columns=['top', 'right', 'bottom', 'left'])
     df = pd.concat([pred, locs], axis=1)
-
-    # For Display Image
-    img = draw_attributes(img_path, df)
-    plt.imshow(img)
-    plt.show()
-
     df['Race'] = df[['Asian', 'White', 'Black']].idxmax(axis=1)
     df_list = df[['Male', 'Asian', 'White',
                   'Black', 'Race', 'top', 'right', 'bottom', 'left']].to_dict('records')
-    result = list(map(row_to_json, df_list))
-    return result
+    return row_to_dict(df_list[0])
 
 
-def row_to_json(row):
-    gender = 'Male' if row['Male'] >= 0.5 else 'Female'
-    gender_confident = row['Male'] if row['Male'] >= 0.5 else 1 - row['Male']
-    race = row['Race']
-    race_confident = row[row['Race']]
+def row_to_dict(row: dict):
+    gender_type = 'Male' if row['Male'] >= 0.5 else 'Female'
+    gender_confidence = row['Male'] if row['Male'] >= 0.5 else 1 - row['Male']
+    race_type = row['Race']
+    race_confidence = row[row['Race']]
     return {
         'gender': {
-            'gender': gender,
-            'confident': gender_confident
+            'type': gender_type,
+            'confidence': gender_confidence
         },
         'race': {
-            'race': race,
-            'confident': race_confident
+            'type': race_type,
+            'confidence': race_confidence
         },
-        'top': row['top'],
-        'right': row['right'],
-        'bottom': row['bottom'],
-        'left': row['left']}
-
-
-def draw_attributes(img_path, df):
-    """Write bounding boxes and predicted face attributes on the image
-    """
-    img = Image.open(img_path)
-    img = np.array(img)
-    # img  = cv2.cvtColor(color, cv2.COLOR_BGR2RGB)
-    for row in df.iterrows():
-        top, right, bottom, left = row[1][4:].astype(int)
-        if row[1]['Male'] >= 0.5:
-            gender = 'Male'
-        else:
-            gender = 'Female'
-
-        race = np.argmax(row[1][1: 4])
-        text_showed = "{} {}".format(race, gender)
-
-        cv2.rectangle(img, (left, top), (right, bottom), (0, 0, 255), 2)
-        font = cv2.FONT_HERSHEY_DUPLEX
-        img_width = img.shape[1]
-        cv2.putText(img, text_showed, (left + 6, bottom - 6),
-                    font, 0.5, (255, 255, 255), 1)
-    return img
+        'position_top': row['top'],
+        'position_right': row['right'],
+        'position_bottom': row['bottom'],
+        'position_left': row['left'],
+        'time': int(time.time())}
 
 # ----------------------------------- Test ----------------------------------- #
 
@@ -162,9 +191,11 @@ def test():
 def main(argv):
     if argv and argv[0] == '--test':
         print('test')
-        test()
-        return
-        result = predict_one_image('picture/adult.jpeg')
+        # result = predict_one_image('picture/classmate.jpg', {
+        #                            'position_top': 240, 'position_right': 810, 'position_bottom': 290, 'position_left': 760})
+        result = predict_one_image('picture/babe_female.jpg', {
+                                   'position_top': 136, 'position_right': 681, 'position_bottom': 394, 'position_left': 423})
+        # result = predict_one_image('picture/babe_female.jpg')
         print(json.dumps(result, indent=2))
 
 
