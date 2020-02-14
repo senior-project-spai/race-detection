@@ -123,7 +123,7 @@ def row_to_dict(row: dict):
         'position_right': row['right'],
         'position_bottom': row['bottom'],
         'position_left': row['left'],
-        'time': int(time.time())}
+        'time': int(round(time.time() * 1000))}
 
 
 def main(argv):
