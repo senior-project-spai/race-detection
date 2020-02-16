@@ -4,7 +4,7 @@ import numpy as np
 import sklearn
 import pickle
 from face_recognition import face_locations
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 import cv2
 import pandas as pd
 import json
@@ -21,11 +21,24 @@ clf, labels = None, None
 with open(model_path, 'rb') as f:
     clf, labels = pickle.load(f, encoding='latin1')
 
+def load_image_file(file, mode='RGB'):
+    """
+    Loads an image file (.jpg, .png, etc) into a numpy array + rotate
+
+    :param file: image file name or file object to load
+    :param mode: format to convert the image to. Only 'RGB' (8-bit RGB, 3 channels) and 'L' (black and white) are supported.
+    :return: image contents as numpy array
+    """
+    im = Image.open(file)
+    if mode:
+        im = im.convert(mode)
+    im = ImageOps.exif_transpose(im)
+    return np.array(im)
 
 def extract_features(img_path):
     """Exctract 128 dimensional features
     """
-    X_img = face_recognition.load_image_file(img_path)
+    X_img = load_image_file(img_path)
     locs = face_locations(X_img, number_of_times_to_upsample=N_UPSCLAE)
     if len(locs) == 0:
         return None, None
@@ -131,9 +144,9 @@ def main(argv):
         print('test')
         # result = predict_one_image('picture/classmate.jpg', {
         #                            'position_top': 240, 'position_right': 810, 'position_bottom': 290, 'position_left': 760})
-        result = predict_one_image('picture/babe_female.jpg', {
-                                   'position_top': 136, 'position_right': 681, 'position_bottom': 394, 'position_left': 423})
-        # result = predict_one_image('picture/babe_female.jpg')
+        # result = predict_one_image('picture/babe_female.jpg', {
+        #                            'position_top': 136, 'position_right': 681, 'position_bottom': 394, 'position_left': 423})
+        result = predict_one_image('picture/Check-side-view-0.jpeg')
         print(json.dumps(result, indent=2))
 
 
