@@ -21,6 +21,7 @@ clf, labels = None, None
 with open(model_path, 'rb') as f:
     clf, labels = pickle.load(f, encoding='latin1')
 
+
 def load_image_file(file, mode='RGB'):
     """
     Loads an image file (.jpg, .png, etc) into a numpy array + rotate
@@ -34,6 +35,7 @@ def load_image_file(file, mode='RGB'):
         im = im.convert(mode)
     im = ImageOps.exif_transpose(im)
     return np.array(im)
+
 
 def extract_features(img_path):
     """Exctract 128 dimensional features
@@ -102,7 +104,7 @@ def predict_one_image(img_path, ref_position: Dict[str, int] = None):
             'position_right': None,
             'position_bottom': None,
             'position_left': None,
-            'time': int(time.time())}
+            'time': int(round(time.time() * 1000)) / 1000}
 
     # Predict
     print("INFO: Predict Location: {}".format(locs))
@@ -136,7 +138,7 @@ def row_to_dict(row: dict):
         'position_right': row['right'],
         'position_bottom': row['bottom'],
         'position_left': row['left'],
-        'time': int(round(time.time() * 1000))}
+        'time': int(round(time.time() * 1000)) / 1000}
 
 
 def main(argv):
