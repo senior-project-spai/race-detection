@@ -37,7 +37,7 @@ def main():
                                  '{}:{}'.format(KAFKA_HOST, KAFKA_PORT)],
                              auto_offset_reset='earliest',
                              enable_auto_commit=True,
-                             group_id='my-group')
+                             group_id='race-prediction-group')
 
     producer = KafkaProducer(
         bootstrap_servers=['{}:{}'.format(KAFKA_HOST, KAFKA_PORT)])
