@@ -35,7 +35,7 @@ RUN cd ~ && \
 COPY ./requirements.txt .
 RUN pip3 install -r requirements.txt
 
-COPY . /root/face_detection
+COPY . /root/race_detection
 
-CMD cd /root/face_detection && \
+CMD cd /root/race_detection && \
     python3 app.py
