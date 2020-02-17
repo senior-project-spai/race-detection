@@ -22,14 +22,12 @@ KAFKA_HOST = os.environ['KAFKA_HOST']
 KAFKA_PORT = os.environ['KAFKA_PORT']
 KAFKA_TOPIC_FACE_IMAGE = os.environ['KAFKA_TOPIC_FACE_IMAGE']
 KAFKA_TOPIC_RACE_RESULT = os.environ['KAFKA_TOPIC_RACE_RESULT']
-KAFKA_TOPIC_GENDER_RESULT = os.environ['KAFKA_TOPIC_GENDER_RESULT']
 
 # display environment variable
 logger.info('KAFKA_HOST: {}'.format(KAFKA_HOST))
 logger.info('KAFKA_PORT: {}'.format(KAFKA_PORT))
 logger.info('KAFKA_TOPIC_FACE_IMAGE: {}'.format(KAFKA_TOPIC_FACE_IMAGE))
 logger.info('KAFKA_TOPIC_RACE_RESULT: {}'.format(KAFKA_TOPIC_RACE_RESULT))
-logger.info('KAFKA_TOPIC_GENDER_RESULT: {}'.format(KAFKA_TOPIC_GENDER_RESULT))
 
 
 def main():
@@ -71,14 +69,6 @@ def main():
             img_stream, ref_position=ref_position)
 
         # Response
-        gender_result = {'face_image_id': input_json['face_image_id'],
-                         'type': predict['gender']['type'],
-                         'confidence': predict['gender']['confidence'],
-                         'position_top': predict['position_top'],
-                         'position_right': predict['position_right'],
-                         'position_bottom': predict['position_bottom'],
-                         'position_left': predict['position_left'],
-                         'time': predict['time']}
         race_result = {'face_image_id': input_json['face_image_id'],
                        'type': predict['race']['type'],
                        'confidence': predict['race']['confidence'],
@@ -87,14 +77,10 @@ def main():
                        'position_bottom': predict['position_bottom'],
                        'position_left': predict['position_left'],
                        'time': predict['time']}
-        logger.info('Gender Result JSON: {}'.format(
-            dumps(gender_result, indent=2)))
         logger.info('Race Result JSON: {}'.format(
             dumps(race_result, indent=2)))
 
         # Send to Kafka
-        producer.send(KAFKA_TOPIC_GENDER_RESULT,
-                      value=dumps(gender_result).encode('utf-8'))
         producer.send(KAFKA_TOPIC_RACE_RESULT,
                       value=dumps(race_result).encode('utf-8'))
 
