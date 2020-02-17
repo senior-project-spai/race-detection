@@ -52,9 +52,6 @@ def main():
         img_stream = s3_helper.get_file_stream_s3(
             input_json['face_image_path'])
 
-        # Open image from stream
-        img = Image.open(img_stream)
-
         # Reference position
         ref_position = None
         if input_json['position_top'] and input_json['position_right'] and input_json['position_bottom'] and input_json['position_left']:
