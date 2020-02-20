@@ -36,7 +36,6 @@ def main():
                              bootstrap_servers=[
                                  '{}:{}'.format(KAFKA_HOST, KAFKA_PORT)],
                              auto_offset_reset='earliest',
-                             enable_auto_commit=True,
                              group_id='race-detection-group')
 
     producer = KafkaProducer(
@@ -80,7 +79,7 @@ def main():
         # Send to Kafka
         producer.send(KAFKA_TOPIC_RACE_RESULT,
                       value=dumps(race_result).encode('utf-8'))
-
+        consumer.commit()
 
 if __name__ == '__main__':
     main()
