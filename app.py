@@ -80,7 +80,6 @@ def main():
         # Send to Kafka
         producer.send(KAFKA_TOPIC_RACE_RESULT,
                       value=dumps(race_result).encode('utf-8'))
-        consumer.commit()
 
 if __name__ == '__main__':
     main()
