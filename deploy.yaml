@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: race-detection
+  name: race-detection
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+        app: race-detection
+  template:
+    metadata:
+      labels:
+        app: race-detection
+    spec:
+      containers:
+        - env:
+            - name: KAFKA_TOPIC_FACE_IMAGE
+              valueFrom:
+                configMapKeyRef:
+                  key: KAFKA_TOPIC_FACE_IMAGE_INPUT
+                  name: kafka-topic
+            - name: KAFKA_TOPIC_RACE_RESULT
+              valueFrom:
+                configMapKeyRef:
+                  key: topic-face-result-race
+                  name: kafka-topic
+          envFrom:
+            - configMapRef:
+                name: kafka-endpoint
+            - configMapRef:
+                name: s3-endpoint
+            - configMapRef:
+                name: s3-key
+          image: supakornbabe/spai-race-detection:dev-da15847
+          imagePullPolicy: Always
+          name: race-detection
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+ 
